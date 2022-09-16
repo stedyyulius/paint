@@ -1,51 +1,98 @@
-import { useMemo } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 
 import pencil from '../assets/pencil.png';
 import upload from '../assets/upload-image.png';
 
 interface Props {
-    onDrawClick: () => void
+    onIconClick: (iconName: string) => void
+}
+
+interface IconProps {
+    selected: boolean,
+    onClick: (event: React.MouseEvent<HTMLElement>) => void
 }
 
 export const PaintNavigator = (props: Props) => {
 
+    const [selected, setSelected] = useState('');
+
+    const handleClick = (iconName: string) => {
+        setSelected(iconName);
+        props.onIconClick(iconName);
+    }
+
     const __renderRectangleIcon = () => {
+
+        const iconName = 'rectangle';
+
         return (
-            <IconContainer>
-                <RectangleIcon title="Create Rectangle" />
+            <IconContainer 
+            selected={selected === iconName }
+            onClick={() => handleClick(iconName)}
+            title="Create Rectangle"
+            >
+                <RectangleIcon />
             </IconContainer>
         )
     }
 
     const __renderTriangleIcon = () => {
+       
+        const iconName = 'triangle';
+
         return (
-            <IconContainer>
+            <IconContainer 
+            selected={selected === iconName }
+            onClick={() => handleClick(iconName)}
+            title="Create Triangle"
+            >
                 <TriangleIcon />
             </IconContainer>
         )
     }
 
     const __renderCircleIcon = () => {
+   
+        const iconName = 'circle';
+
         return (
-            <IconContainer>
-                <CircleIcon title="Create Circle"  />
+            <IconContainer 
+            selected={selected === iconName }
+            onClick={() => handleClick(iconName)}
+            title="Create Circle" 
+            >
+                <CircleIcon  />
             </IconContainer>
         )
     }
 
     const __renderPencilIcon = () => {
+ 
+        const iconName = 'pencil';
+
         return (
-            <IconContainer>
-                <PencilIcon src={pencil} title="Draw" onClick={() => props.onDrawClick()} />
+            <IconContainer 
+            selected={selected === iconName }
+            onClick={() => handleClick(iconName)}
+            title="Draw"
+            >
+                <PencilIcon src={pencil} />
             </IconContainer>
         )
     }
 
     const __renderUploadImageIcon = () => {
+
+        const iconName = 'upload';
+
         return (
-            <IconContainer>
-                <UploadImageIcon src={upload} title="Upload Image"  />
+            <IconContainer 
+            selected={selected === iconName }
+            onClick={() => handleClick(iconName)}
+            title="Upload Image"
+            >
+                <UploadImageIcon src={upload} />
             </IconContainer>
         )
     }
@@ -62,23 +109,25 @@ export const PaintNavigator = (props: Props) => {
 }
 
 const NavigationContainer = styled.div`
-    width: 30vw;
     margin: 5% auto;
     border: 2px solid black;
     display: flex;
     flex-direction: row;
 `
 
-const IconContainer = styled.div`
-    width: 20%;
-    height: 80px;
-    border-left: 1px solid black;
-    border-right: 1px solid black;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    padding: 10px;
-`
+const IconContainer = styled.div((props: IconProps) => {
+    return `
+        width: 20%;
+        height: 80px;
+        border-left: 1px solid black;
+        border-right: 1px solid black;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        padding: 10px;
+        background-color: ${(props.selected) ? '#edebe6' : '#none' };
+    `;
+});
 
 const RectangleIcon = styled.div`
     border: 2px solid black;
