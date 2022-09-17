@@ -63,8 +63,8 @@ export const Box: FC<BoxProps> = memo(function Box({ color, type, selectedIcon }
 		boxStyles = {
 		    width: 0,
 			height: 0,
-			borderLeft: '40px solid red',
-			borderRight: '40px solid yellow',
+			borderLeft: '40px solid transparent',
+			borderRight: '40px solid transparent',
 			borderBottom: `65px solid ${color}`,
 		}
 	}
