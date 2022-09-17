@@ -1,25 +1,29 @@
-import { useState } from 'react';
 import styled from 'styled-components';
 
 import pencil from '../assets/pencil.png';
 import upload from '../assets/upload-image.png';
+import color from '../assets/color.png';
 
 interface Props {
-    onIconClick: (iconName: string) => void
+    onIconClick: (iconName: string, event?: React.ChangeEvent<HTMLInputElement>) => void
+    selectedColor: string,
+    selectedIcon: string,
+    setSelectedIcon: (iconName: string) => void
 }
 
 interface IconProps {
     selected: boolean,
-    onClick: (event: React.MouseEvent<HTMLElement>) => void
+    onClick: (event: React.MouseEvent<HTMLElement>) => void,
+    selectedColor?: string
 }
 
 export const PaintNavigator = (props: Props) => {
 
-    const [selected, setSelected] = useState('');
+    const { onIconClick, selectedColor, setSelectedIcon, selectedIcon } = props;
 
     const handleClick = (iconName: string) => {
-        setSelected(iconName);
-        props.onIconClick(iconName);
+        setSelectedIcon(iconName);
+        onIconClick(iconName);
     }
 
     const __renderRectangleIcon = () => {
@@ -28,7 +32,7 @@ export const PaintNavigator = (props: Props) => {
 
         return (
             <IconContainer 
-            selected={selected === iconName }
+            selected={selectedIcon === iconName }
             onClick={() => handleClick(iconName)}
             title="Create Rectangle"
             >
@@ -43,7 +47,7 @@ export const PaintNavigator = (props: Props) => {
 
         return (
             <IconContainer 
-            selected={selected === iconName }
+            selected={selectedIcon === iconName }
             onClick={() => handleClick(iconName)}
             title="Create Triangle"
             >
@@ -58,7 +62,7 @@ export const PaintNavigator = (props: Props) => {
 
         return (
             <IconContainer 
-            selected={selected === iconName }
+            selected={selectedIcon === iconName }
             onClick={() => handleClick(iconName)}
             title="Create Circle" 
             >
@@ -73,7 +77,7 @@ export const PaintNavigator = (props: Props) => {
 
         return (
             <IconContainer 
-            selected={selected === iconName }
+            selected={selectedIcon === iconName }
             onClick={() => handleClick(iconName)}
             title="Draw"
             >
@@ -88,11 +92,29 @@ export const PaintNavigator = (props: Props) => {
 
         return (
             <IconContainer 
-            selected={selected === iconName }
-            onClick={() => handleClick(iconName)}
+            selected={selectedIcon === iconName }
+            onClick={() => setSelectedIcon(iconName)}
             title="Upload Image"
             >
                 <UploadImageIcon src={upload} />
+                <HiddenInputFile type="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => onIconClick('upload', e)} />
+            </IconContainer>
+        )
+    }
+
+    const __renderColorIcon = () => {
+
+        const iconName = 'color';
+
+        return (
+            <IconContainer 
+            selected={selectedIcon === iconName }
+            onClick={() => setSelectedIcon(iconName)}
+            title="Color Object"
+            selectedColor={selectedColor}
+            >
+                <ColorIcon src={color} />
+                <HiddenInputColor type="color" onChange={(e: React.ChangeEvent<HTMLInputElement>) => onIconClick('color', e)} />
             </IconContainer>
         )
     }
@@ -103,6 +125,7 @@ export const PaintNavigator = (props: Props) => {
             { __renderTriangleIcon() }
             { __renderCircleIcon() }
             { __renderPencilIcon() }
+            { __renderColorIcon() }
             { __renderUploadImageIcon() }
         </NavigationContainer>
     )
@@ -125,7 +148,7 @@ const IconContainer = styled.div((props: IconProps) => {
         align-items: center;
         display: flex;
         padding: 10px;
-        background-color: ${(props.selected) ? '#edebe6' : '#none' };
+        background-color: ${(props.selected) ? props.selectedColor ? props.selectedColor : '#edebe6'  : 'none' };
     `;
 });
 
@@ -156,7 +179,28 @@ const PencilIcon = styled.img`
     height: 50px;
 `
 
+const ColorIcon = styled.img`
+    width: 50px;
+    height: 50px;
+`
+
+const HiddenInputColor = styled.input`
+    opacity: 0;
+    position: absolute;
+    right: 20%;
+    width: 20%;
+    height: 80px;
+`
+
 const UploadImageIcon = styled.img`
     width: 50px;
     height: 50px;
+`
+
+const HiddenInputFile = styled.input`
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    width: 20%;
+    height: 80px;
 `

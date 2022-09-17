@@ -1,4 +1,4 @@
-import { FC, CSSProperties } from 'react';
+import { FC, CSSProperties, useState } from 'react';
 import update from 'immutability-helper';
 import { useCallback } from 'react';
 import { useDrop } from 'react-dnd';
@@ -6,34 +6,38 @@ import { snapToGrid } from '../helpers/snapToGrid';
 
 import { DraggableBox } from './DraggableBox';
 
-interface BoxMap {
-	[key: string]: { top: number; left: number; title: string; type: string }
+export interface BoxMap {
+	[key: string]: { top: number; left: number; color: string; type: string }
 }
 
 interface ContainerProps {
 	snap: boolean
     setBoxes: (box:BoxMap) => void
-    boxes: BoxMap
+    boxes: BoxMap,
+	selectedColor: string,
+	selectedIcon: string
 }
 
 interface DragItem {
 	id: string
 	type: string
 	left: number
-	top: number
+	top: number,
 }
 
 const styles: CSSProperties = {
-	width: '100%',
+	width: '99%',
 	height: 300,
-	border: '1px solid black',
-	position: 'relative',
+	position: 'absolute',
+	zIndex: 2,
+	backgroundColor: 'transparent'
 }
 
 
 export const DragDropContainer: FC<ContainerProps> = (props) => {
+	const [selectedBox, setSelectedBox] = useState('');
 
-    const { snap, boxes, setBoxes } = props;
+    const { snap, boxes, setBoxes, selectedColor, selectedIcon } = props;
 
 	const moveBox = useCallback(
 		(id: string, left: number, top: number) => {
@@ -44,7 +48,7 @@ export const DragDropContainer: FC<ContainerProps> = (props) => {
 					},
 				}),
 			)
-	}, [props])
+	}, [boxes, setBoxes])
 
 	const [, drop] = useDrop(
 		() => ({
@@ -66,14 +70,27 @@ export const DragDropContainer: FC<ContainerProps> = (props) => {
 			},
 	}),[moveBox])
 
+	const changeBoxColor = (id: string) => {
+		const newBoxes = boxes;
+		newBoxes[id].color = selectedColor;
+		setBoxes({ ...newBoxes })
+	}
+
 	return (
 		<div ref={drop} style={styles}>
 			{Object.keys(boxes).map((key) => (
-				<DraggableBox
-					key={key}
-					id={key}
-					{...(boxes[key])}
-				/>
+				<div 
+				key={key}
+				onClick={() => selectedIcon === 'color' ? changeBoxColor(key) : setSelectedBox(key)}>
+					<DraggableBox
+						id={key}
+						selectedBox={selectedBox}
+						selectedIcon={selectedIcon}
+						setBoxes={setBoxes}
+						boxes={boxes}
+						{...(boxes[key])}
+					/>
+				</div>
 			))}
 		</div>
 	)

@@ -1,68 +1,112 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import CanvasDraw from "react-canvas-draw";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 import './App.css';
 
-import { DragDropContainer } from "./components/DragDropContainer";
+import { BoxMap, DragDropContainer } from "./components/DragDropContainer";
 import { PaintNavigator } from "./components/PaintNavigator";
 
+import bucket from './assets/fill-bucket.png';
 
-interface BoxMap {
-	[key: string]: { top: number; left: number; title: string; type: string }
-}
 
 function App() {
+  const [isDraw, setIsDraw] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<undefined | string>(undefined);
+  const [boxes, setBoxes] = useState<BoxMap>({})
+  const [selectedColor, setSelectedColor] = useState('');
+  const [canvasColor, setCanvasColor] = useState('transparent');
+  const [selectedIcon, setSelectedIcon] = useState('');
 
-  const [boxes, setBoxes] = useState<BoxMap>({
-		// a: { top: 20, left: 80, title: 'Drag me around', type: 'circle' },
-		// b: { top: 180, left: 20, title: 'Drag me too', type: 'triangle' },
-	})
+  const createNewBox = (type: string) => {
+    const newBoxes = boxes;
+    newBoxes[Object.keys(boxes).length] = { top: 20, left: 80, color: 'black', type };
+    setBoxes({ ...newBoxes });
+  }
 
-  const handleIconClick = (iconName: string) => {
+  const handleIconClick = (iconName: string, event?: React.ChangeEvent<HTMLInputElement>) => {
+
+      setIsDraw(false);
+      setSelectedIcon(iconName);
 
       if (iconName === 'pencil') {
-      
+        setIsDraw(true);
       } 
 
       if (iconName === 'rectangle') {
-        const newBoxes = boxes;
-        newBoxes[Object.keys(boxes).length] = { top: 20, left: 80, title: 'Drag me around', type: 'rectangle' }
-        setBoxes({ ...newBoxes })
+        createNewBox('rectangle');
       }
 
       if (iconName === 'triangle') {
-    
+        createNewBox('triangle');
       } 
 
       if (iconName === 'circle') {
- 
+        createNewBox('circle');
       }
 
-      if (iconName === 'upload') {
-       
+      if (iconName === 'color' && event) {
+        setSelectedColor(event.target.value);
       }
+
+      if (iconName === 'upload' && event && event.target && event.target.files) {
+          let reader = new FileReader();
+          let file = event.target.files[0];
+      
+          reader.onload = (upload: any) => {
+              setUploadedImage(upload.target.result);
+          };
+          reader.readAsDataURL(file);
+      }
+  }
+
+  const handleDeleteImage = (e: React.KeyboardEvent<HTMLDivElement>) => {
+
+    if (e.code === 'Backspace') {
+      setUploadedImage(undefined);
+    }
   }
 
   return (
     <DndProvider backend={HTML5Backend}>
         <PaintNavigator 
-          onIconClick={(iconName: string) => handleIconClick(iconName)} 
+          onIconClick={(iconName: string, event?: React.ChangeEvent<HTMLInputElement>) => handleIconClick(iconName, event)}
+          selectedColor={selectedColor}
+          setSelectedIcon={setSelectedIcon}
+          selectedIcon={selectedIcon}
         />
-        <DragDropContainer snap boxes={boxes} setBoxes={setBoxes} />
-        {/* <CanvasDraw
-          disabled={!isDraw}
-          hideGrid={true}
-          imgSrc={uploadedImage}
-          brushRadius={1}
-          hideInterface={true}
-            style={{
-              margin: '5% auto',
-              border: '2px solid black',
-              width: '100%'
-            }}
-          /> */}
+        <div 
+        tabIndex={0}
+        onClick={() => selectedColor ? setCanvasColor(selectedColor) : null}
+        onKeyDown={handleDeleteImage}
+        style={{
+          cursor: selectedColor && selectedIcon === 'color' ? `url(${bucket}), auto` : '',
+        }}
+        >
+           <DragDropContainer 
+           snap 
+           boxes={boxes} 
+           setBoxes={setBoxes} 
+           selectedColor={selectedColor}
+           selectedIcon={selectedIcon}          
+           />
+        </div>
+          <CanvasDraw
+            disabled={!isDraw}
+            hideGrid={true}
+            imgSrc={uploadedImage}
+            brushRadius={1}
+            hideInterface={true}
+              style={{
+                width: '99.8%',
+                zIndex: isDraw ? 3 : 1,
+                backgroundColor: canvasColor,
+                border: '1px solid black',
+                margin:'auto',
+                position: 'absolute'
+              }}
+            />
     </DndProvider>
   );
 }

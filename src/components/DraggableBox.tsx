@@ -1,9 +1,12 @@
 import { useDrag } from 'react-dnd'
 import type { CSSProperties, FC } from 'react'
-import { memo, useEffect } from 'react'
+import { memo } from 'react'
 import type { DragSourceMonitor } from 'react-dnd'
-import { getEmptyImage } from 'react-dnd-html5-backend'
 import { Resizable } from 're-resizable'
+
+import { BoxMap } from './DragDropContainer'
+
+import bucket from '../assets/fill-bucket.png';
 
 export interface DragItem {
 	id: string
@@ -27,75 +30,101 @@ function getStyles(
 	}
 }
 
-const boxStyles: CSSProperties = {
-	border: '1px dashed gray',
-	padding: '0.5rem 1rem',
-	cursor: 'move',
-}
-
 export interface BoxProps {
-	title: string
 	color?: string,
-	type: string
+	type: string,
+	selectedIcon: string
 }
 
-export const Box: FC<BoxProps> = memo(function Box({ title, color, type }) {
+export const Box: FC<BoxProps> = memo(function Box({ color, type, selectedIcon }) {
 
-	let boxStyles: CSSProperties = {
-		border: '1px dashed gray',
-		padding: '0.5rem 1rem',
-		cursor: 'move',
-	}
+	let boxStyles: CSSProperties = {};
 
 	if (type === 'rectangle') {
+		boxStyles = {
+			border: '1px solid gray',
+			padding: 40,
+			backgroundColor: color
+		}
+	}
 
+	if (type === 'circle') {
+		boxStyles = {
+		    width: 40,
+			height: 40,
+			borderRadius: '100%',
+			backgroundColor: color,
+			border: '1px solid gray',
+			padding: 40,
+		}
+	}
+
+	if (type === 'triangle') {
+		boxStyles = {
+		    width: 0,
+			height: 0,
+			borderLeft: '40px solid red',
+			borderRight: '40px solid yellow',
+			borderBottom: `65px solid ${color}`,
+		}
 	}
 
 	return (
 		<Resizable
-			style={{ ...boxStyles, backgroundColor: color || 'black' }}
-		>
-			{title}
-		</Resizable>
+			lockAspectRatio
+			style={{ 
+				...boxStyles, 
+				cursor: selectedIcon === 'color' ? `url(${bucket}), auto` : 'move' 
+			}}
+		/>
 	)
 })
 
 export interface DraggableBoxProps {
 	id: string
-	title: string
+	color: string
 	left: number
 	top: number,
-	type: string
+	type: string,
+	selectedBox: string,
+	setBoxes: (box: BoxMap) => void,
+	boxes: BoxMap,
+	selectedIcon: string
 }
 
 export const DraggableBox: FC<DraggableBoxProps> = memo(function DraggableBox(
 	props,
 ) {
-	const { id, title, left, top, type } = props
+	const { id, color, left, top, type, selectedBox, boxes, setBoxes, selectedIcon } = props
 
-	const [{ isDragging }, drag, preview] = useDrag(
+	const [{ isDragging }, drag] = useDrag(
 		() => ({
 			type: 'box',
-			item: { id, left, top, title },
+			item: { id, left, top, color },
 			collect: (monitor: DragSourceMonitor) => ({
 				isDragging: monitor.isDragging(),
                 opacity: monitor.isDragging() ? 0.5 : 1
 			}),
 		}),
-		[id, left, top, title],
+		[id, left, top, color],
 	)
 
-	useEffect(() => {
-		preview(getEmptyImage(), { captureDraggingState: true })
-	}, [preview])
+	const handleDelete = (e: React.KeyboardEvent<HTMLDivElement>) => {
+		if (e.code === 'Backspace') {
+			const newBox = boxes;
+			delete newBox[id];
+			setBoxes({ ...newBox })
+		}
+	}
 
 	return (
 		<div
+			tabIndex={0}
 			ref={drag}
-			style={getStyles(left, top, isDragging)}
-			role="DraggableBox"
+			style={{...getStyles(left, top, isDragging), border: selectedBox === id ? '1px dashed blue' : '' }}
+			onKeyDown={handleDelete}
 		>
-			<Box title={title} type={type} />
+			<Box type={type} color={color} selectedIcon={selectedIcon} />
 		</div>
 	)
 })
